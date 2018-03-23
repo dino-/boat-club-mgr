@@ -3,7 +3,7 @@ version: '0.1.0'
 synopsis: Wateree Boat Club website
 description: Reimplementation of the Wateree Boat Club website with Haskell,
   Yesod and SQLite
-license: PublicDomain
+license: ISC
 author: Dino Morelli
 maintainer: dino@ui3.info
 category: Web

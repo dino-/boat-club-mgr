@@ -1,5 +1,49 @@
 name:    watereeboatclub
-version: "0.0.0"
+version: '0.1.0'
+synopsis: Wateree Boat Club website
+description: Reimplementation of the Wateree Boat Club website with Haskell,
+  Yesod and SQLite
+license: PublicDomain
+author: Dino Morelli
+maintainer: dino@ui3.info
+category: Web
+extra-source-files:
+- package.yaml
+- README.md
+- stack.yaml
+
+github: dino-/watereeboatclub
+
+ghc-options:
+- -fwarn-tabs
+- -Wall
+- -Wcompat
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wredundant-constraints
+
+default-extensions:
+- BangPatterns
+- DeriveFoldable
+- DeriveFunctor
+- DeriveGeneric
+- DeriveLift
+- DeriveTraversable
+- EmptyCase
+- FlexibleContexts
+- FlexibleInstances
+- GeneralizedNewtypeDeriving
+- InstanceSigs
+- KindSignatures
+- LambdaCase
+- MultiParamTypeClasses
+- MultiWayIf
+- NamedFieldPuns
+- OverloadedStrings
+- ScopedTypeVariables
+- StandaloneDeriving
+- TupleSections
+- TypeFamilies
 
 dependencies:
 
@@ -54,16 +98,10 @@ library:
   when:
   - condition: (flag(dev)) || (flag(library-only))
     then:
-      ghc-options:
-      - -Wall
-      - -fwarn-tabs
-      - -O0
+      ghc-options: -O0
       cpp-options: -DDEVELOPMENT
     else:
-      ghc-options:
-      - -Wall
-      - -fwarn-tabs
-      - -O2
+      ghc-options: -O2
 
 # Runnable executable for our application
 executables:
@@ -85,7 +123,9 @@ tests:
   test:
     main: Spec.hs
     source-dirs: test
-    ghc-options: -Wall
+    ghc-options:
+    - -rtsopts
+    - -threaded
     dependencies:
     - watereeboatclub
     - hspec >=2.0.0

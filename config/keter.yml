@@ -15,8 +15,8 @@ stanzas:
     #
     # The path given is for Stack projects. If you're still using cabal, change
     # to
-    # exec: ../dist/build/watereeboatclub/watereeboatclub
-    exec: ../dist/bin/watereeboatclub
+    # exec: ../dist/build/boat-club-mgr/boat-club-mgr
+    exec: ../dist/bin/boat-club-mgr
 
     # Command line options passed to your application.
     args: []

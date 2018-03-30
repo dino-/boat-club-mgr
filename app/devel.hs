@@ -1,5 +1,5 @@
 {-# LANGUAGE PackageImports #-}
-import "watereeboatclub" Application (develMain)
+import "boat-club-mgr" Application (develMain)
 import Prelude (IO)
 
 main :: IO ()

@@ -1,14 +1,15 @@
-# watereeboatclub
+# boat-club-mgr
 
 
 ## Synopsis
 
-Wateree Boat Club website
+Boat club management web application
 
 
 ## Description
 
-Reimplementation of the Wateree Boat Club website with Haskell, Yesod and SQLite
+Management system for boat clubs including boat rentals. Made with Haskell,
+Yesod and SQLite.
 
 
 ## Development
@@ -26,7 +27,7 @@ redeployed to localhost.
 ### Tests
 
 ```
-stack test --flag watereeboatclub:library-only --flag watereeboatclub:dev
+stack test --flag boat-club-mgr:library-only --flag boat-club-mgr:dev
 ```
 
 (Because `yesod devel` passes the `library-only` and `dev` flags, matching

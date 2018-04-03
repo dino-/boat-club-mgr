@@ -24,6 +24,7 @@ import Yesod.Default.Util ( addStaticContentExternal )
 
 import Authentication ( ourEmailLoginHandler, ourForgotPasswordHandler )
 import Import.NoFoundation
+import Model.UserHelper ( defaultUser )
 
 
 -- | The foundation datatype for your application. This can be a good place to
@@ -214,7 +215,7 @@ instance YesodAuth App where
 
     -- Need to find the UserId for the given email address.
     getAuthId creds = runDB $ do
-      x <- insertBy $ User (credsIdent creds) Nothing Nothing False
+      x <- insertBy $ defaultUser { userEmail = credsIdent creds }
       return $ Just $
         case x of
           Left (Entity userid _) -> userid  -- newly added user
@@ -239,7 +240,7 @@ instance YesodAuthEmail App where
     afterPasswordRoute _ = HomeR
 
     addUnverified email verkey =
-        runDB $ insert $ User email Nothing (Just verkey) False
+        runDB $ insert $ defaultUser { userEmail = email, userVerkey = Just verkey }
 
     sendVerifyEmail :: Email -> VerKey -> VerUrl -> HandlerT site IO ()
     sendVerifyEmail email _ verurl = do

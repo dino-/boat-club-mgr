@@ -1,30 +1,25 @@
-{-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ExplicitForAll #-}
+{-# LANGUAGE RankNTypes #-}
 
-module Foundation
-  where
+module Foundation where
 
+import Import.NoFoundation
+import Database.Persist.Sql (ConnectionPool, runSqlPool)
+import Text.Hamlet          (hamletFile)
+import Text.Jasmine         (minifym)
+
+-- Used only when in "auth-dummy-login" setting is enabled.
+import Yesod.Auth.Dummy
+
+import Yesod.Auth.OpenId    (authOpenId, IdentifierType (Claimed))
+import Yesod.Default.Util   (addStaticContentExternal)
+import Yesod.Core.Types     (Logger)
+import qualified Yesod.Core.Unsafe as Unsafe
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
-import qualified Data.Text.Lazy.Encoding
-import Database.Persist.Sql ( ConnectionPool, runSqlPool )
-import Network.Mail.Mime
-import Text.Blaze.Html.Renderer.Utf8 ( renderHtml )
-import Text.Hamlet ( hamletFile )
-import Text.Jasmine ( minifym )
-import Text.Shakespeare.Text ( stext )
-import Yesod.Auth.Email
-import Yesod.Core.Types ( Logger )
-import qualified Yesod.Core.Unsafe as Unsafe
-import Yesod.Default.Util ( addStaticContentExternal )
-
-import Authentication ( ourEmailLoginHandler, ourForgotPasswordHandler )
-import Import.NoFoundation
-
 
 -- | The foundation datatype for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -92,7 +87,7 @@ instance Yesod App where
     --   b) Validates that incoming write requests include that token in either a header or POST parameter.
     -- To add it, chain it together with the defaultMiddleware: yesodMiddleware = defaultYesodMiddleware . defaultCsrfMiddleware
     -- For details, see the CSRF documentation in the Yesod.Core.Handler module of the yesod-core package.
-    yesodMiddleware = defaultYesodMiddleware . defaultCsrfMiddleware
+    yesodMiddleware = defaultYesodMiddleware
 
     defaultLayout widget = do
         master <- getYesod
@@ -209,18 +204,24 @@ instance YesodAuth App where
     loginDest _ = HomeR
     -- Where to send a user after logout
     logoutDest _ = HomeR
+    -- Override the above two destinations when a Referer: header is present
+    redirectToReferer _ = True
 
-    authPlugins _ = [authEmail]
-
-    -- Need to find the UserId for the given email address.
-    getAuthId creds = runDB $ do
-      x <- insertBy $ User (credsIdent creds) Nothing Nothing False
-      return $ Just $
+    authenticate creds = runDB $ do
+        x <- getBy $ UniqueUser $ credsIdent creds
         case x of
-          Left (Entity userid _) -> userid  -- newly added user
-          Right userid -> userid  -- existing user
+            Just (Entity uid _) -> return $ Authenticated uid
+            Nothing -> Authenticated <$> insert User
+                { userIdent = credsIdent creds
+                , userPassword = Nothing
+                }
 
-    authHttpManager = error "Email doesn't need an HTTP manager"
+    -- You can add other plugins like Google Email, email or OAuth here
+    authPlugins app = [authOpenId Claimed []] ++ extraAuthPlugins
+        -- Enable authDummy login if enabled.
+        where extraAuthPlugins = [authDummy | appAuthDummyLogin $ appSettings app]
+
+    authHttpManager = getHttpManager
 
 -- | Access function to determine if a user is logged in.
 isAuthenticated :: Handler AuthResult
@@ -231,83 +232,6 @@ isAuthenticated = do
         Just _ -> Authorized
 
 instance YesodAuthPersist App
-
--- Here's all of the email-specific code
-instance YesodAuthEmail App where
-    type AuthEmailId App = UserId
-
-    afterPasswordRoute _ = HomeR
-
-    addUnverified email verkey =
-        runDB $ insert $ User email Nothing (Just verkey) False
-
-    sendVerifyEmail :: Email -> VerKey -> VerUrl -> HandlerT site IO ()
-    sendVerifyEmail email _ verurl = do
-        -- Print out to the console the verification email, for easier
-        -- debugging.
-        liftIO $ putStrLn $ "Copy/Paste this URL in your browser:" ++ (tshow verurl)
-
-        -- Send email.
-        liftIO $ renderSendMail (emptyMail $ Address Nothing "noreply")
-            { mailTo = [Address Nothing email]
-            , mailHeaders =
-                [ ("Subject", "Verify your email address")
-                ]
-            , mailParts = [[textPart, htmlPart']]
-            }
-      where
-        textPart = Part
-            { partType = "text/plain; charset=utf-8"
-            , partEncoding = None
-            , partFilename = Nothing
-            , partContent = Data.Text.Lazy.Encoding.encodeUtf8
-                [stext|
-                    Please confirm your email address by clicking on the link below.
-
-                    #{verurl}
-
-                    Thank you
-                |]
-            , partHeaders = []
-            }
-        htmlPart' = Part
-            { partType = "text/html; charset=utf-8"
-            , partEncoding = None
-            , partFilename = Nothing
-            , partContent = renderHtml
-                [shamlet|
-                    <p>Please confirm your email address by clicking on the link below.
-                    <p>
-                        <a href=#{verurl}>#{verurl}
-                    <p>Thank you
-                |]
-            , partHeaders = []
-            }
-    getVerifyKey = runDB . fmap (join . fmap userVerkey) . get
-    setVerifyKey uid key = runDB $ update uid [UserVerkey =. Just key]
-    verifyAccount uid = runDB $ do
-        mu <- get uid
-        case mu of
-            Nothing -> return Nothing
-            Just _ -> do
-                update uid [UserVerified =. True]
-                return $ Just uid
-    getPassword = runDB . fmap (join . fmap userPassword) . get
-    setPassword uid pass = runDB $ update uid [UserPassword =. Just pass]
-    getEmailCreds email = runDB $ do
-        mu <- getBy $ UniqueUser email
-        case mu of
-            Nothing -> return Nothing
-            Just (Entity uid u) -> return $ Just EmailCreds
-                { emailCredsId = uid
-                , emailCredsAuthId = Just uid
-                , emailCredsStatus = isJust $ userPassword u
-                , emailCredsVerkey = userVerkey u
-                , emailCredsEmail = email
-                }
-    getEmail = runDB . fmap (fmap userEmail) . get
-    emailLoginHandler = ourEmailLoginHandler
-    forgotPasswordHandler = ourForgotPasswordHandler
 
 -- This instance is required to use forms. You can modify renderMessage to
 -- achieve customized and internationalized form validation messages.

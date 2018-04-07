@@ -43,6 +43,8 @@ import Handler.Home
 import Handler.Comment
 import Handler.Profile
 
+import Model.UserHelper ( defaultUser )
+
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
 -- comments there for more details.
@@ -80,7 +82,22 @@ makeFoundation appSettings = do
         (sqlPoolSize $ appDatabaseConf appSettings)
 
     -- Perform database migration using our application's logging settings.
-    runLoggingT (runSqlPool (runMigration migrateAll) pool) logFunc
+    --runLoggingT (runSqlPool (runMigration migrateAll) pool) logFunc
+    runLoggingT (
+      runSqlPool ( do
+          runMigration migrateAll
+
+          adminMembershipExists <- (> 0) <$> count [MembershipMembershipNum ==. adminMembershipNum]
+          unless adminMembershipExists $ insert_ $ Membership adminMembershipNum
+
+          adminUserExists <- (> 0) <$> count [UserMembershipNum ==. adminMembershipNum]
+          unless adminUserExists $ do
+            insert_ $ (defaultUser adminMembershipNum)
+              { userEmail = "admin"
+              , userVerified = True
+              }
+        ) pool
+      ) logFunc
 
     -- Return the foundation
     return $ mkFoundation pool

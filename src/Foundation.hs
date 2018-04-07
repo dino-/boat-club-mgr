@@ -215,7 +215,7 @@ instance YesodAuth App where
 
     -- Need to find the UserId for the given email address.
     getAuthId creds = runDB $ do
-      x <- insertBy $ defaultUser { userEmail = credsIdent creds }
+      x <- insertBy $ (defaultUser adminMembershipNum) { userEmail = credsIdent creds }
       return $ Just $
         case x of
           Left (Entity userid _) -> userid  -- newly added user
@@ -240,7 +240,7 @@ instance YesodAuthEmail App where
     afterPasswordRoute _ = HomeR
 
     addUnverified email verkey =
-        runDB $ insert $ defaultUser { userEmail = email, userVerkey = Just verkey }
+        runDB $ insert $ (defaultUser adminMembershipNum) { userEmail = email, userVerkey = Just verkey }
 
     sendVerifyEmail :: Email -> VerKey -> VerUrl -> HandlerT site IO ()
     sendVerifyEmail email _ verurl = do

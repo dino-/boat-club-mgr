@@ -2,18 +2,20 @@
 -- Syntax for this file here: https://github.com/yesodweb/persistent/blob/master/docs/Persistent-entity-syntax.md
 
 Membership
-  membershipNumber Int
+  membershipNum MembershipNum
   -- group Group
   -- category Category
   -- active Bool
-  created UTCTime
-  UniqueMembership membershipNumber
+  --start UTCTime
+  --end UTCTime
+  UniqueMembership membershipNum
 User
   email Text
   password Text Maybe  -- password may not yet be set
   verkey Text Maybe  -- used for resetting passwords
   verified Bool
   -- memberId MembershipId
+  membershipNum MembershipNum
   created UTCTime
   primary Bool
   givenName Text  -- aka first name

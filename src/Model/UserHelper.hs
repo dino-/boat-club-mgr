@@ -8,15 +8,16 @@ module Model.UserHelper
 import Data.Time.Clock.POSIX ( posixSecondsToUTCTime )
 
 import Import.NoFoundation
+import Model.User ( MembershipNum )
 
 
-defaultUser :: User
-defaultUser = User
+defaultUser :: MembershipNum -> User
+defaultUser membershipNum = User
   { userEmail = ""
   , userPassword = Nothing
   , userVerkey = Nothing
   , userVerified = False
-  -- , userMemberId = 0  -- Huh?
+  , userMembershipNum = membershipNum
   , userCreated = posixSecondsToUTCTime . realToFrac $ (0 :: Int)
   , userPrimary = False
   , userGivenName = ""

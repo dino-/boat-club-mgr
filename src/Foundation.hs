@@ -1,25 +1,24 @@
+{-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE ExplicitForAll #-}
-{-# LANGUAGE RankNTypes #-}
 
-module Foundation where
+module Foundation
+  where
 
-import Import.NoFoundation
-import Database.Persist.Sql (ConnectionPool, runSqlPool)
-import Text.Hamlet          (hamletFile)
-import Text.Jasmine         (minifym)
-
--- Used only when in "auth-dummy-login" setting is enabled.
-import Yesod.Auth.Dummy
-
-import Yesod.Auth.OpenId    (authOpenId, IdentifierType (Claimed))
-import Yesod.Default.Util   (addStaticContentExternal)
-import Yesod.Core.Types     (Logger)
-import qualified Yesod.Core.Unsafe as Unsafe
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
+import Database.Persist.Sql ( ConnectionPool, runSqlPool )
+import Text.Hamlet          ( hamletFile )
+import Text.Jasmine         ( minifym )
+import Yesod.Auth.Dummy  -- Used only when in "auth-dummy-login" setting is enabled.
+import Yesod.Auth.OpenId    ( authOpenId, IdentifierType (Claimed) )
+import Yesod.Core.Types     ( Logger )
+import qualified Yesod.Core.Unsafe as Unsafe
+import Yesod.Default.Util   ( addStaticContentExternal )
+
+import Import.NoFoundation
 
 -- | The foundation datatype for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application

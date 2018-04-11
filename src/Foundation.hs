@@ -173,7 +173,7 @@ instance Yesod App where
     -- the profile route requires that the user is authenticated, so we
     -- delegate to that function
     isAuthorized ProfileR _ = isAuthenticated
-    isAuthorized MembershipAddR _ = isAuthenticated  -- FIXME Only administrators!
+    isAuthorized MembershipAddR _ = isAdmin
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
@@ -267,6 +267,7 @@ instance YesodAuth App where
     authPlugins :: App -> [AuthPlugin App]
     authPlugins _ = [authEmail]
 
+
 -- | Access function to determine if a user is logged in.
 isAuthenticated :: Handler AuthResult
 isAuthenticated = do
@@ -274,6 +275,20 @@ isAuthenticated = do
     return $ case muid of
         Nothing -> Unauthorized "You must login to access this page"
         Just _ -> Authorized
+
+
+-- | Access function to determine if a user is logged in and is an admin user
+isAdmin :: HandlerFor App AuthResult
+isAdmin = do
+  mu <- maybeAuthId
+  case mu of
+    Nothing -> return AuthenticationRequired
+    Just uid -> do
+      user <- runDB $ getJust uid
+      if (userMbrNum user) == Just adminMbrNum
+        then return Authorized
+        else return $ Unauthorized "You must be an admin"
+
 
 instance YesodAuthPersist App
 

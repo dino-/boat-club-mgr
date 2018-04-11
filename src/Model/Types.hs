@@ -6,6 +6,6 @@ module Model.Types where
 import ClassyPrelude.Yesod
 
 
-newtype MbrNum = MbrNum Int
-  deriving (Eq, Read, Show)
+newtype MbrNum = MbrNum { getMbrNum :: Int }
+  deriving (Eq, Num, Read, Show)
 derivePersistField "MbrNum"

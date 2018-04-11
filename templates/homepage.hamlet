@@ -15,6 +15,8 @@
         <div .row>
             <div .col-lg-12>
                 <div .page-header>
+                    <p><a href=@{MembershipAddR}>Add new membership</a>
+
                     <h1 #start>Starting
 
                     <p>

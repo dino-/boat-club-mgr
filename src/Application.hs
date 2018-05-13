@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE RecordWildCards #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -24,6 +24,7 @@ import Database.Persist.Sqlite              (createSqlitePool, runSqlPool,
                                              sqlDatabase, sqlPoolSize)
 import Import
 import Language.Haskell.TH.Syntax           (qLocation)
+import Network.HTTP.Client.TLS              (getGlobalManager)
 import Network.Wai (Middleware)
 import Network.Wai.Handler.Warp             (Settings, defaultSettings,
                                              defaultShouldDisplayException,
@@ -35,6 +36,8 @@ import Network.Wai.Middleware.RequestLogger (Destination (Logger),
                                              mkRequestLogger, outputFormat)
 import System.Log.FastLogger                (defaultBufSize, newStdoutLoggerSet,
                                              toLogStr)
+import Data.String.Conv ( toS )
+import Yesod.Auth.Util.PasswordStore ( makePassword )
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
@@ -56,7 +59,7 @@ makeFoundation :: AppSettings -> IO App
 makeFoundation appSettings = do
     -- Some basic initializations: HTTP connection manager, logger, and static
     -- subsite.
-    appHttpManager <- newManager
+    appHttpManager <- getGlobalManager
     appLogger <- newStdoutLoggerSet defaultBufSize >>= makeYesodLogger
     appStatic <-
         (if appMutableStatic appSettings then staticDevel else static)
@@ -80,7 +83,17 @@ makeFoundation appSettings = do
         (sqlPoolSize $ appDatabaseConf appSettings)
 
     -- Perform database migration using our application's logging settings.
-    runLoggingT (runSqlPool (runMigration migrateAll) pool) logFunc
+    --runLoggingT (runSqlPool (runMigration migrateAll) pool) logFunc
+    runLoggingT (
+      runSqlPool ( do
+        runMigration migrateAll
+
+        adminUserExists <- (> 0) <$> count [UserMbrNum ==. Just adminMbrNum]
+        unless adminUserExists $ do
+          pwHash <- liftIO $ makePassword "admin" 14
+          insert_ $ User (Just adminMbrNum) "admin@nowhere.com" (Just . toS $ pwHash) Nothing True
+        ) pool
+      ) logFunc
 
     -- Return the foundation
     return $ mkFoundation pool
@@ -184,5 +197,5 @@ handler :: Handler a -> IO a
 handler h = getAppSettings >>= makeFoundation >>= flip unsafeHandler h
 
 -- | Run DB queries
-db :: ReaderT SqlBackend (HandlerT App IO) a -> IO a
+db :: ReaderT SqlBackend Handler a -> IO a
 db = handler . runDB

@@ -82,10 +82,12 @@ makeFoundation appSettings = do
         (sqlPoolSize $ appDatabaseConf appSettings)
 
     -- Perform database migration using our application's logging settings.
-    --runLoggingT (runSqlPool (runMigration migrateAll) pool) logFunc
     runLoggingT (
       runSqlPool ( do
         runMigration migrateAll
+
+        adminMbrshipExists <- (> 0) <$> count [MembershipMbrNum ==. adminMbrNum]
+        unless adminMbrshipExists $ insert_ $ Membership adminMbrNum
 
         adminUserExists <- (> 0) <$> count [UserMbrNum ==. Just adminMbrNum]
         unless adminUserExists $ do

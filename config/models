@@ -1,6 +1,15 @@
 -- By default this file is used by `persistFileWith` in Model.hs (which is imported by Foundation.hs)
 -- Syntax for this file here: https://github.com/yesodweb/persistent/blob/master/docs/Persistent-entity-syntax.md
 
+Membership
+  mbrNum MbrNum
+  -- group Group
+  -- category Category
+  -- active Bool
+  -- start UTCTime
+  -- end UTCTime
+  UniqueMembership mbrNum
+  deriving Show
 User
   mbrNum MbrNum Maybe  -- New accounts have none!
   email Text

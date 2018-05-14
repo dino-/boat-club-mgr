@@ -84,7 +84,7 @@ authenticateAs :: Entity User -> YesodExample App ()
 authenticateAs (Entity _ u) = do
     request $ do
         setMethod "POST"
-        addPostParam "ident" $ userIdent u
+        addPostParam "ident" $ userEmail u
         setUrl $ AuthR $ PluginR "dummy" []
 
 -- | Create a user.  The dummy email entry helps to confirm that foreign-key
@@ -92,12 +92,10 @@ authenticateAs (Entity _ u) = do
 createUser :: Text -> YesodExample App (Entity User)
 createUser ident = runDB $ do
     user <- insertEntity User
-        { userIdent = ident
+        { userMbrNum = Nothing
+        , userEmail = ident
         , userPassword = Nothing
-        }
-    _ <- insert Email
-        { emailEmail = ident
-        , emailUserId = Just $ entityKey user
-        , emailVerkey = Nothing
+        , userVerkey = Nothing
+        , userVerified = False
         }
     return user

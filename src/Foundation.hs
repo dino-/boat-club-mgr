@@ -26,6 +26,7 @@ import Text.Shakespeare.Text ( stext )
 import Yesod.Auth.Email
 
 import Helper.Authentication ( ourEmailLoginHandler )
+import Helper.User ( emptyUser )
 
 
 -- | The foundation datatype for your application. This can be a good place to
@@ -255,13 +256,7 @@ instance YesodAuth App where
         x <- getBy $ UniqueUser $ credsIdent creds
         case x of
             Just (Entity uid _) -> return $ Authenticated uid
-            Nothing -> Authenticated <$> insert User
-                { userEmail = credsIdent creds
-                , userPassword = Nothing
-                , userVerkey = Nothing
-                , userVerified = False
-                , userMbrNum = Nothing
-                }
+            Nothing -> Authenticated <$> insert emptyUser { userEmail = credsIdent creds }
 
     -- You can add other plugins like Google Email, email or OAuth here
     authPlugins :: App -> [AuthPlugin App]
@@ -300,7 +295,10 @@ instance YesodAuthEmail App where
     afterPasswordRoute _ = HomeR
 
     addUnverified email verkey =
-        liftHandler . runDB $ insert $ User Nothing email Nothing (Just verkey) False
+        liftHandler . runDB $ insert $ emptyUser
+          { userEmail = email
+          , userPassword = Just verkey
+          }
 
     sendVerifyEmail email _ verurl = do
         -- Print out to the console the verification email, for easier

@@ -93,7 +93,7 @@ makeFoundation appSettings = do
         adminUserExists <- (> 0) <$> count [UserMbrNum ==. Just adminMbrNum]
         unless adminUserExists $ do
           pwHash <- liftIO $ makePassword "admin" 14
-          insert_ $ User (Just adminMbrNum) "admin@nowhere.com" (Just . toS $ pwHash) Nothing True
+          insert_ $ User (Just adminMbrNum) "admin@nowhere.com" (Just . toS $ pwHash) Nothing True "" ""
         ) pool
       ) logFunc
 

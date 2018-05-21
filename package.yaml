@@ -92,6 +92,8 @@ dependencies:
 - mime-mail
 - blaze-html
 - string-conv
+- colonnade
+- blaze-colonnade
 
 # The library contains all of our application code. The executable
 # defined below is just a thin wrapper.

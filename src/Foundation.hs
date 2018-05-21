@@ -175,6 +175,7 @@ instance Yesod App where
     -- delegate to that function
     isAuthorized ProfileR _ = isAuthenticated
     isAuthorized MembershipAddR _ = isAdmin
+    isAuthorized UserListR _ = isAdmin
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows

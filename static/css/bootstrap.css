@@ -7020,3 +7020,19 @@ a.list-group-item-danger.active:focus {
 .popover {
   color: #2c3e50;
 }
+
+
+/* Added by Dino */
+
+tr .dropdown-toggle {
+  color: transparent;
+}
+
+tr:hover .dropdown-toggle {
+  color: black;
+}
+
+span#dropdownUser {
+  padding-left: 1em;
+  padding-right: 1em;
+}

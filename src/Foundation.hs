@@ -287,7 +287,7 @@ isAdmin = do
       user <- runDB $ getJust uid
       if (userMbrNum user) == Just adminMbrNum
         then return Authorized
-        else return $ Unauthorized "You must be an admin"
+        else return $ Unauthorized "You must be a site administrator to access this information"
 
 
 instance YesodAuthPersist App

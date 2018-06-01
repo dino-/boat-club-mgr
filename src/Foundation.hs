@@ -304,7 +304,7 @@ instance YesodAuthEmail App where
     addUnverified email verkey =
         liftHandler . runDB $ insert $ emptyUser
           { userEmail = email
-          , userPassword = Just verkey
+          , userVerkey = Just verkey
           }
 
     sendVerifyEmail email _ verurl = do

@@ -18,10 +18,10 @@ userForm user = do
   renderBootstrap3 BootstrapBasicForm $ User
     <$> aopt membershipNumField (bfs ("Membership Number" :: Text))
       (Just . userMbrNum $ user)
-    <*> pure (userEmail user)
-    <*> pure (userPassword user)
-    <*> pure (userVerkey user)
-    <*> pure (userVerified user)
+    <*> areq hiddenField "" (Just . userEmail $ user)
+    <*> areq hiddenField "" (Just . userPassword $ user)
+    <*> areq hiddenField "" (Just . userVerkey $ user)
+    <*> areq hiddenField "" (Just . userVerified $ user)
     <*> areq textField (bfs ("Given name" :: Text)) (Just . userGivenName $ user)
     <*> areq textField (bfs ("Surname" :: Text)) (Just . userSurName $ user)
 

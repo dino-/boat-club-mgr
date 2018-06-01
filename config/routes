@@ -13,3 +13,4 @@
 /membership/add MembershipAddR GET POST
 /user/list UserListR GET
 /user/edit/#UserId UserEditR GET POST
+/user/delete/#UserId UserDeleteR GET

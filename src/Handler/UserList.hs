@@ -79,12 +79,12 @@ userTable eusers =
 
 
 mkMenuCell :: Entity User -> WidgetFor App ()
-mkMenuCell euser = [whamlet|
+mkMenuCell (Entity userId user) = [whamlet|
     <div .dropdown>
       <span .glyphicon .glyphicon-option-vertical .dropdown-toggle
         type=button #dropdownUser data-toggle=dropdown aria-haspopup=true
         aria-expanded=true aria-hidden=true>
       <ul .dropdown-menu aria-labelledby=dropdownUser>
-        <li><a href="@{UserEditR $ entityKey euser}">Edit</a>
-        <li><a href="#" data-toggle=modal data-target=#delModal data-useremail=#{userEmail $ entityVal euser} data-delurl=@{UserListR}>Delete</a>
+        <li><a href="@{UserEditR userId}">Edit</a>
+        <li><a href="#" data-toggle=modal data-target=#delModal data-useremail="#{userEmail user}" data-delurl=@{UserDeleteR userId}>Delete</a>
   |]

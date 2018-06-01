@@ -180,6 +180,7 @@ instance Yesod App where
     -- Routes requiring that an administrator is authenticated
     isAuthorized MembershipAddR _ = isAdmin
     isAuthorized UserListR _ = isAdmin
+    isAuthorized (UserDeleteR _) _ = isAdmin
 
 
     -- This function creates static content files in the static folder

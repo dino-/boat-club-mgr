@@ -175,6 +175,7 @@ instance Yesod App where
 
     -- Routes requiring that the user is authenticated
     isAuthorized ProfileR _ = isAuthenticated
+    isAuthorized (UserEditR _) _ = isAuthenticated
 
     -- Routes requiring that an administrator is authenticated
     isAuthorized MembershipAddR _ = isAdmin

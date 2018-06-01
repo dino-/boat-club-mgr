@@ -85,6 +85,6 @@ mkMenuCell euser = [whamlet|
         type=button #dropdownUser data-toggle=dropdown aria-haspopup=true
         aria-expanded=true aria-hidden=true>
       <ul .dropdown-menu aria-labelledby=dropdownUser>
-        <li><a href="#">Edit</a>
+        <li><a href="@{UserEditR $ entityKey euser}">Edit</a>
         <li><a href="#" data-toggle=modal data-target=#delModal data-useremail=#{userEmail $ entityVal euser} data-delurl=@{UserListR}>Delete</a>
   |]

@@ -294,6 +294,10 @@ isAdmin = do
         else return $ Unauthorized "You must be a site administrator to access this information"
 
 
+isAdminB :: HandlerFor App Bool
+isAdminB = (== Authorized) <$> isAdmin
+
+
 instance YesodAuthPersist App
 
 

@@ -297,81 +297,91 @@ instance YesodAuthPersist App
 
 -- Here's all of the email-specific code
 instance YesodAuthEmail App where
-    type AuthEmailId App = UserId
 
-    afterPasswordRoute _ = HomeR
+  type AuthEmailId App = UserId
 
-    addUnverified email verkey =
-        liftHandler . runDB $ insert $ emptyUser
-          { userEmail = email
-          , userVerkey = Just verkey
-          }
+  afterPasswordRoute _ = HomeR
 
-    sendVerifyEmail email _ verurl = do
-        -- Print out to the console the verification email, for easier
-        -- debugging.
-        liftIO $ putStrLn $ "Copy/Paste this URL in your browser:" ++ verurl
+  addUnverified email verkey =
+    liftHandler . runDB $ insert $ emptyUser
+      { userEmail = email
+      , userVerkey = Just verkey
+      }
 
-        -- Send email.
-        liftIO $ renderSendMail (emptyMail $ Address Nothing "noreply")
-            { mailTo = [Address Nothing email]
-            , mailHeaders =
-                [ ("Subject", "Verify your email address")
-                ]
-            , mailParts = [[textPart, htmlPart']]
-            }
-      where
-        textPart = Part
-            { partType = "text/plain; charset=utf-8"
-            , partEncoding = None
-            , partFilename = Nothing
-            , partContent = Data.Text.Lazy.Encoding.encodeUtf8
-                [stext|
-                    Please confirm your email address by clicking on the link below.
+  sendVerifyEmail email _ verurl = do
+    -- Print out to the console the verification email, for easier
+    -- debugging.
+    liftIO $ putStrLn $ "Copy/Paste this URL in your browser:" ++ verurl
 
-                    #{verurl}
+    -- Send email.
+    liftIO $ renderSendMail (emptyMail $ Address Nothing "noreply")
+      { mailTo = [Address Nothing email]
+      , mailHeaders =
+          [ ("Subject", "Verify your email address")
+          ]
+      , mailParts = [[textPart, htmlPart']]
+      }
 
-                    Thank you
-                |]
-            , partHeaders = []
-            }
-        htmlPart' = Part
-            { partType = "text/html; charset=utf-8"
-            , partEncoding = None
-            , partFilename = Nothing
-            , partContent = renderHtml
-                [shamlet|
-                    <p>Please confirm your email address by clicking on the link below.
-                    <p>
-                        <a href=#{verurl}>#{verurl}
-                    <p>Thank you
-                |]
-            , partHeaders = []
-            }
-    getVerifyKey = liftHandler . runDB . fmap (join . fmap userVerkey) . get
-    setVerifyKey uid key = liftHandler . runDB $ update uid [UserVerkey =. Just key]
-    verifyAccount uid = liftHandler . runDB $ do
-        mu <- get uid
-        case mu of
-            Nothing -> return Nothing
-            Just _ -> do
-                update uid [UserVerified =. True]
-                return $ Just uid
-    getPassword = liftHandler . runDB . fmap (join . fmap userPassword) . get
-    setPassword uid pass = liftHandler . runDB $ update uid [UserPassword =. Just pass]
-    getEmailCreds email = liftHandler . runDB $ do
-        mu <- getBy $ UniqueUser email
-        case mu of
-            Nothing -> return Nothing
-            Just (Entity uid u) -> return $ Just EmailCreds
-                { emailCredsId = uid
-                , emailCredsAuthId = Just uid
-                , emailCredsStatus = isJust $ userPassword u
-                , emailCredsVerkey = userVerkey u
-                , emailCredsEmail = email
-                }
-    getEmail = liftHandler . runDB . fmap (fmap userEmail) . get
-    emailLoginHandler = ourEmailLoginHandler
+    where
+      textPart = Part
+        { partType = "text/plain; charset=utf-8"
+        , partEncoding = None
+        , partFilename = Nothing
+        , partContent = Data.Text.Lazy.Encoding.encodeUtf8
+          [stext|
+            Please confirm your email address by clicking on the link below.
+
+            #{verurl}
+
+            Thank you
+          |]
+        , partHeaders = []
+        }
+      htmlPart' = Part
+        { partType = "text/html; charset=utf-8"
+        , partEncoding = None
+        , partFilename = Nothing
+        , partContent = renderHtml
+          [shamlet|
+            <p>Please confirm your email address by clicking on the link below.
+            <p>
+                <a href=#{verurl}>#{verurl}
+            <p>Thank you
+          |]
+        , partHeaders = []
+        }
+
+  getVerifyKey = liftHandler . runDB . fmap (join . fmap userVerkey) . get
+
+  setVerifyKey uid key = liftHandler . runDB $ update uid [UserVerkey =. Just key]
+
+  verifyAccount uid = liftHandler . runDB $ do
+    mu <- get uid
+    case mu of
+      Nothing -> return Nothing
+      Just _ -> do
+        update uid [UserVerified =. True]
+        return $ Just uid
+
+  getPassword = liftHandler . runDB . fmap (join . fmap userPassword) . get
+
+  setPassword uid pass = liftHandler . runDB $ update uid [UserPassword =. Just pass]
+
+  getEmailCreds email = liftHandler . runDB $ do
+    mu <- getBy $ UniqueUser email
+    case mu of
+      Nothing -> return Nothing
+      Just (Entity uid u) -> return $ Just EmailCreds
+        { emailCredsId = uid
+        , emailCredsAuthId = Just uid
+        , emailCredsStatus = isJust $ userPassword u
+        , emailCredsVerkey = userVerkey u
+        , emailCredsEmail = email
+        }
+
+  getEmail = liftHandler . runDB . fmap (fmap userEmail) . get
+
+  emailLoginHandler = ourEmailLoginHandler
 
 
 -- This instance is required to use forms. You can modify renderMessage to

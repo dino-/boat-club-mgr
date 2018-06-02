@@ -24,6 +24,8 @@ import Network.Mail.Mime
 import Text.Blaze.Html.Renderer.Utf8 ( renderHtml )
 import Text.Shakespeare.Text ( stext )
 import Yesod.Auth.Email
+import Text.Printf ( printf )
+import Data.String.Conv ( toS )
 
 import Helper.Authentication ( ourEmailLoginHandler )
 import Helper.User ( emptyUser )
@@ -313,14 +315,19 @@ instance YesodAuthEmail App where
     -- debugging.
     liftIO $ putStrLn $ "Copy/Paste this URL in your browser:" ++ verurl
 
-    -- Send email.
-    liftIO $ renderSendMail (emptyMail $ Address Nothing "noreply")
-      { mailTo = [Address Nothing email]
-      , mailHeaders =
-          [ ("Subject", "Verify your email address")
-          ]
-      , mailParts = [[textPart, htmlPart']]
-      }
+    if (email == "foo@bar.com")
+      then
+        liftIO $ printf "Special debug email address '%s' detected, not sending email\n"
+          (toS email :: String)
+      else
+        -- Send email.
+        liftIO $ renderSendMail (emptyMail $ Address Nothing "noreply")
+          { mailTo = [Address Nothing email]
+          , mailHeaders =
+              [ ("Subject", "Verify your email address")
+              ]
+          , mailParts = [[textPart, htmlPart']]
+          }
 
     where
       textPart = Part
